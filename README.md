@@ -42,4 +42,4 @@
 
 [лизун](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun.png)
 
-[лизун-состояние_2](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-show.gif)
+[лизун:состояние 2](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-show.gif)
