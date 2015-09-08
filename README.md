@@ -40,6 +40,8 @@
 
 ## Изображения
 
-[лизун](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun.png)
+[лизун](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-002.png)
 
-[лизун:состояние 2](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-show.gif)
+### Старое
+
+[лизун-001](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-001.png)
