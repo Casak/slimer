@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:drawable="@drawable/hit_side0005" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0006" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0007" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0008" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0009" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0010" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0011" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0012" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0013" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0014" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0015" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0016" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0017" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0018" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0019" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0020" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0021" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0022" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0023" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0024" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0025" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0026" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0027" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0028" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0029" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0030" android:duration="40"/>
+  <item android:drawable="@drawable/hit_side0031" android:duration="4000"/>
+</animation-list>
