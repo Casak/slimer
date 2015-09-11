@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+  	<item 
+	android:drawable="@drawable/hit_up0013"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0014"
+	android:duration="40"/>
+<!-- loop -->
+<!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+<!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+    <!-- start -->
+	<item 
+	android:drawable="@drawable/hit_up0015"
+	android:duration="70"/>
+	<item 
+	android:drawable="@drawable/hit_up0016"
+	android:duration="70"/>
+<!-- /loop -->
+	<item 
+	android:drawable="@drawable/hit_up0017"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0018"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0019"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0020"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0021"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0022"
+	android:duration="40"/>
+	<item 
+	android:drawable="@drawable/hit_up0023"
+	android:duration="40"/>
+	<item
+		android:drawable="@drawable/slimer_def"
+		android:duration="4000"/>
+</animation-list>
