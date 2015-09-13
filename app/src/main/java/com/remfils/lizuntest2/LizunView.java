@@ -1,10 +1,12 @@
 package com.remfils.lizuntest2;
 
 import android.content.Context;
-import casak.ru.slimer.R;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -16,7 +18,10 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
-public class LizunView extends SurfaceView{
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class LizunView extends SurfaceView {
     static public int WIDTH = 1280; // slimer width
     static public int HEIGHT = 800; // slimer height
 
@@ -29,21 +34,26 @@ public class LizunView extends SurfaceView{
     static final private int FOUND_IN_CENTER_STATE = 9;
     static final private int CHARGE_UP_STATE = 10;
     static final private int HIT_UP_ANIMATION = 11;
+    static final private int FOUND_TURN_ANIMATION = 12;
+    static final private int FOUND_SHOW_ANIMATION = 13;
 
     final private float SLIMER_ALPHA = 0.8f;
     final private int SLIMER_CHARGE_ACCELERATION = 2;
     final private int SLIMER_FLIGHT_DURATION = 300;
 
-    static final private int HIT_UP_ANIMATION_LENGTH = 1550;
-    static final private int HIT_SIDE_ANIMATION_LENGTH = 920;
-    static final private int THINKING_ANIMATION_LENGTH = 2500;
-
-    final private float TIME_COEF;
+    static final private int HIT_UP_ANIMATION_LENGTH = 1620; // was 1550
+    static final private int HIT_SIDE_ANIMATION_LENGTH = 1040; // was 920
+    static final private int THINKING_ANIMATION_LENGTH = 2820; // was 2500
+    static final private int TURN_ANIMATION_LENGTH = 1280;
+    static final private int SHOW_ANIMATION_LENGTH = 1790;
 
     private int screen_width, screen_height;
 
-    private float x = 0, y;
+    private boolean is_first_time = true;
+
+    private float x = -100, y;
     private int current_state = BEGIN_STATE;
+    private boolean is_charger_found = false;
 
     public LizunView(Context context, WindowManager window_manager) {
         super(context);
@@ -63,14 +73,34 @@ public class LizunView extends SurfaceView{
 
         y = screen_height / 2;
 
-        TIME_COEF = 2500.f / screen_width;
-
         updatePosition();
 
         setAlpha(SLIMER_ALPHA);
     }
 
-    public void playFirstState() {
+    public void pause() {
+        AnimationDrawable a_d = (AnimationDrawable) getBackground();
+        a_d.stop();
+
+        updatePosition();
+
+        setAnimation(null);
+    }
+
+    public void resume() {
+        if ( is_first_time ) {
+            start();
+            is_first_time = false;
+        }
+        else {
+            AnimationDrawable a_d = (AnimationDrawable) getBackground();
+            a_d.start();
+
+            update();
+        }
+    }
+
+    private void start() {
         playAnimation(R.anim.search);
 
         x = 0;
@@ -82,8 +112,22 @@ public class LizunView extends SurfaceView{
         a.setAnimationListener(new AnimationEndListener());
     }
 
+    public void playFirstState() {
+        is_charger_found = false;
+    }
+
     public void playSecondState() {
+        is_charger_found = true;
+
         current_state = FOUND_STATE;
+
+        playAnimation(R.anim.slimer_second_def);
+
+        moveTo( screen_width / 2, screen_height / 2);
+
+        float dr = x - getX() + WIDTH / 2;
+        if ( dr <= 0 ) setScaleX(-1);
+        else setScaleX(1);
     }
 
     private void setState(int state) {
@@ -94,6 +138,14 @@ public class LizunView extends SurfaceView{
         updatePosition();
         desideWhatToDo();
         updateAnimation();
+        offtabletTest();
+    }
+    int c = 0;
+    private void offtabletTest() {
+        if ( c++ == 10 ) {
+            Log.v("current_state", "Second state activated");
+            playSecondState();
+        }
     }
 
     private void updatePosition() {
@@ -103,11 +155,17 @@ public class LizunView extends SurfaceView{
 
     private void desideWhatToDo() {
         double chance = Math.random();
-
-        if ( chance < 0.3 ) current_state = CHARGE_SIDE_WALL;
-        else if ( chance < 0.5 ) current_state = THINKING_STATE;
-        else if ( chance < 0.7 ) current_state = CHARGE_UP_STATE;
-        else current_state = SEARCH_STATE;
+        if ( is_charger_found ) {
+            if ( chance < 0.4 ) current_state = FOUND_TURN_ANIMATION;
+            else current_state = FOUND_SHOW_ANIMATION;
+        }
+        else {
+            if ( chance < 0.3 ) current_state = CHARGE_SIDE_WALL;
+            else if ( chance < 0.5 ) current_state = THINKING_STATE;
+            else if ( chance < 0.7 ) current_state = CHARGE_UP_STATE;
+            else current_state = SEARCH_STATE;
+        }
+        traceCurrentState();
     }
 
     private void updateAnimation() {
@@ -137,6 +195,14 @@ public class LizunView extends SurfaceView{
                 playAnimation(R.anim.thinking);
                 waitAnimationToEnd(THINKING_ANIMATION_LENGTH);
                 break;
+            case FOUND_TURN_ANIMATION:
+                playAnimation(R.anim.turn_animation);
+                waitAnimationToEnd(TURN_ANIMATION_LENGTH);
+                break;
+            case FOUND_SHOW_ANIMATION:
+                playAnimation(R.anim.show_animation);
+                waitAnimationToEnd(SHOW_ANIMATION_LENGTH);
+                break;
             default:
                 //setState(SEARCH_STATE);
         }
@@ -158,12 +224,11 @@ public class LizunView extends SurfaceView{
     private TranslateAnimation moveTo(float to_x, float to_y) {
         double dx = x - to_x + WIDTH / 2;
         double dy = y - to_y + HEIGHT / 2;
-        double dr = Math.sqrt(dx * dx + dy*dy);
 
         x = to_x - WIDTH / 2;
         y = to_y - HEIGHT / 2;
 
-        TranslateAnimation a = new TranslateAnimation(0,x - getX() , 0,y - getY() );
+        final TranslateAnimation a = new TranslateAnimation(0,x - getX() , 0,y - getY() );
         a.setDuration(1500);
         a.setInterpolator(new AccelerateDecelerateInterpolator());
 
@@ -182,40 +247,95 @@ public class LizunView extends SurfaceView{
     }
 
     private Animation waitAnimationToEnd (int time) {
+//        Log.v("msg:", "animation is waiting. state: " + current_state);
+//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.v("msg:", "stop animation wait. state: " + current_state);
+//                animationEndCallback();
+//                Log.v("msg:", "after animationEndCallback(). state: " + current_state);
+//            }
+//        }, time);
+//        new Timer().schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                animationEndCallback();
+//            }
+//        }, time);
         Animation a = moveTo(getX() + WIDTH / 2, getY() + HEIGHT / 2);
         a.setDuration(time);
         a.setInterpolator(new LinearInterpolator());
-        return a;
+        return null;
     }
 
     private void turn() {
         setScaleX(getScaleX() * -1);
     }
 
-
-    private class AnimationEndListener implements Animation.AnimationListener {
-        public void onAnimationStart(Animation animation) {}
-        public void onAnimationRepeat(Animation animation) {}
-        public void onAnimationEnd(Animation animation) {
-            if ( current_state == CHARGE_UP_STATE) {
-                updatePosition();
-                current_state = HIT_UP_ANIMATION;
-                playAnimation(R.anim.hit_celling_animation);
-                waitAnimationToEnd(HIT_UP_ANIMATION_LENGTH);
-                return;
-            }
-            if ( current_state == CHARGE_SIDE_WALL) {
+    private void animationEndCallback() {
+        switch ( current_state ) {
+            case CHARGE_SIDE_WALL:
                 updatePosition();
                 current_state = HIT_SIDE_ANIMATION;
                 playAnimation(R.anim.wall_hit_animation);
                 waitAnimationToEnd(HIT_SIDE_ANIMATION_LENGTH);
                 return;
-            }
-            if ( current_state == HIT_SIDE_ANIMATION) {
+            case CHARGE_UP_STATE:
+                updatePosition();
+                current_state = HIT_UP_ANIMATION;
+                playAnimation(R.anim.hit_celling_animation);
+                waitAnimationToEnd(HIT_UP_ANIMATION_LENGTH);
+                return;
+            case HIT_SIDE_ANIMATION:
                 turn();
-            }
+                break;
+            case FOUND_STATE:
+                updatePosition();
+                setScaleX(-1);
+                current_state = FOUND_TURN_ANIMATION;
+                playAnimation(R.anim.turn_animation);
+                waitAnimationToEnd(TURN_ANIMATION_LENGTH);
+                return;
+        }
 
-            update();
+        update();
+    }
+
+    private void traceCurrentState() {
+        String state;
+        switch (current_state) {
+            case SEARCH_STATE:
+                state = "searching";
+                break;
+            case FOUND_STATE:
+                state = "found";
+                break;
+            case CHARGE_SIDE_WALL:
+                state = "charging side wall";
+                break;
+            case CHARGE_UP_STATE:
+                state = "chargin celling";
+                break;
+            case THINKING_STATE:
+                state = "thinking";
+                break;
+            case FOUND_TURN_ANIMATION:
+                state = "looking around";
+                break;
+            case FOUND_SHOW_ANIMATION:
+                state = "showing whats up";
+                break;
+            default:
+                state = String.valueOf(current_state);
+        }
+        Log.v("current_state", state);
+    }
+
+    private class AnimationEndListener implements Animation.AnimationListener {
+        public void onAnimationStart(Animation animation) {}
+        public void onAnimationRepeat(Animation animation) {}
+        public void onAnimationEnd(Animation animation) {
+            animationEndCallback();
         }
     }
 }
