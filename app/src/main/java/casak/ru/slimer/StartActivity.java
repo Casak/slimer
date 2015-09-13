@@ -39,6 +39,11 @@ public class StartActivity extends Activity {
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.setLayoutParams(new FrameLayout.LayoutParams(1280, 960));
         preview.addView(mPreview);
+
+        slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
+        lizunPreview = (FrameLayout) findViewById(R.id.lizun_preview);
+        lizunPreview.addView(slimer);
+        slimer.playFirstState();
     }
 
     @Override
@@ -51,11 +56,8 @@ public class StartActivity extends Activity {
             preview.addView(mPreview);
         }
 
-
-        slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
-        lizunPreview = (FrameLayout) findViewById(R.id.lizun_preview);
-        lizunPreview.addView(slimer);
-        slimer.playFirstState();
+        slimer.resume();
+        
 
     }
 
@@ -68,15 +70,15 @@ public class StartActivity extends Activity {
             mCamera.release();
             mCamera = null;
         }
+
+        slimer.pause();
     }
 
     @Override
     protected void onRestart(){
         super.onRestart();
-        slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
-        lizunPreview = (FrameLayout) findViewById(R.id.lizun_preview);
-        lizunPreview.addView(slimer);
-        slimer.playFirstState();
+
+        slimer.resume();
     }
 
     @Override

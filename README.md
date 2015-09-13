@@ -40,8 +40,11 @@
 
 ## Изображения
 
-[лизун](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-002.png)
+[ЛИЗУН](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-smile-11.png)
+
 
 ### Старое
+
+[лизун-002](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-002.png)
 
 [лизун-001](https://raw.githubusercontent.com/remfils/slimer/master/img/test/lizun-001.png)
