@@ -1,6 +1,7 @@
 package com.remfils.lizuntest2;
 
 import android.content.Context;
+import casak.ru.slimer.R;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
@@ -15,9 +16,9 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
-public class LizunView extends SurfaceView {
-    static public int WIDTH = 318 * 2; // slimer width
-    static public int HEIGHT = 300 * 2; // slimer height
+public class LizunView extends SurfaceView{
+    static public int WIDTH = 1280; // slimer width
+    static public int HEIGHT = 800; // slimer height
 
     static final private int SEARCH_STATE = 1;
     static final private int BEGIN_STATE = 3;
@@ -41,7 +42,7 @@ public class LizunView extends SurfaceView {
 
     private int screen_width, screen_height;
 
-    private float x = -100, y;
+    private float x = 0, y;
     private int current_state = BEGIN_STATE;
 
     public LizunView(Context context, WindowManager window_manager) {
@@ -72,7 +73,7 @@ public class LizunView extends SurfaceView {
     public void playFirstState() {
         playAnimation(R.anim.search);
 
-        x = -100;
+        x = 0;
         y = screen_height / 2 - HEIGHT / 2;
         updatePosition();
 

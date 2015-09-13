@@ -1,21 +1,32 @@
 package casak.ru.slimer;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.hardware.Camera;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
+import java.util.Arrays;
 
-    // TODO Recieve a charge signal
+
+// TODO Recieve a charge signal
 
 public class StartActivity extends Activity {
 
-    private Camera mCamera;
+    private static Camera mCamera;
     private CameraPreview mPreview;
+    private FrameLayout lizunPreview;
     private final String TAG = "START_ACTIVITY";
+    com.remfils.lizuntest2.LizunView slimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +37,7 @@ public class StartActivity extends Activity {
         mCamera = getCameraInstance();
         mPreview = new CameraPreview(this, mCamera);
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        preview.setLayoutParams(new FrameLayout.LayoutParams(1280, 960));
         preview.addView(mPreview);
     }
 
@@ -38,6 +50,13 @@ public class StartActivity extends Activity {
             FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
             preview.addView(mPreview);
         }
+
+
+        slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
+        lizunPreview = (FrameLayout) findViewById(R.id.lizun_preview);
+        lizunPreview.addView(slimer);
+        slimer.playFirstState();
+
     }
 
     @Override
@@ -49,6 +68,15 @@ public class StartActivity extends Activity {
             mCamera.release();
             mCamera = null;
         }
+    }
+
+    @Override
+    protected void onRestart(){
+        super.onRestart();
+        slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
+        lizunPreview = (FrameLayout) findViewById(R.id.lizun_preview);
+        lizunPreview.addView(slimer);
+        slimer.playFirstState();
     }
 
     @Override
