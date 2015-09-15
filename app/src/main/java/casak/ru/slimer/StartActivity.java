@@ -31,12 +31,12 @@ public class StartActivity extends Activity {
         setContentView(R.layout.activity_fullscreen);
         mCamera = getCameraInstance();
         mPreview = new CameraPreview(this, mCamera);
-        RelativeLayout preview = (RelativeLayout) findViewById(R.id.camera_preview);
+        RelativeLayout preview = (RelativeLayout) findViewById(R.id.lol);
         preview.addView(mPreview);
 
         slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
-        RelativeLayout lizunView = (RelativeLayout) findViewById(R.id.lizun_preview);
-        lizunView.addView(slimer);
+        //RelativeLayout lizunView = (RelativeLayout) findViewById(R.layout.activity_fullscreen);
+        preview.addView(slimer);
         slimer.playFirstState();
     }
 
@@ -47,7 +47,7 @@ public class StartActivity extends Activity {
         if(mCamera == null){
             mCamera = getCameraInstance();
             mPreview = new CameraPreview(this, mCamera);
-            FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+            FrameLayout preview = (FrameLayout) findViewById(R.id.lol);
             preview.addView(mPreview);
         }
 
