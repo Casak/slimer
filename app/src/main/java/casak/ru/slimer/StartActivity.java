@@ -1,21 +1,15 @@
 package casak.ru.slimer;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.hardware.Camera;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Display;
 import android.view.KeyEvent;
-import android.view.View;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-
-import java.util.Arrays;
+import android.widget.RelativeLayout;
 
 
 // TODO Recieve a charge signal
@@ -24,7 +18,7 @@ public class StartActivity extends Activity {
 
     private static Camera mCamera;
     private CameraPreview mPreview;
-    private FrameLayout lizunPreview;
+    private RelativeLayout lizunPreview;
     private final String TAG = "START_ACTIVITY";
     com.remfils.lizuntest2.LizunView slimer;
 
@@ -32,29 +26,31 @@ public class StartActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.i(TAG, "onCreate()");
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         setContentView(R.layout.activity_fullscreen);
         mCamera = getCameraInstance();
         mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.setLayoutParams(new FrameLayout.LayoutParams(1280, 960));
+        RelativeLayout preview = (RelativeLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
         slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
-        lizunPreview = (FrameLayout) findViewById(R.id.lizun_preview);
-        lizunPreview.addView(slimer);
+        RelativeLayout lizunView = (RelativeLayout) findViewById(R.id.lizun_preview);
+        lizunView.addView(slimer);
         slimer.playFirstState();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i(TAG, "onResume()");
         if(mCamera == null){
             mCamera = getCameraInstance();
             mPreview = new CameraPreview(this, mCamera);
             FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
             preview.addView(mPreview);
         }
+
 
         slimer.resume();
         
@@ -64,6 +60,7 @@ public class StartActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i(TAG, "onPause()");
         if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mPreview.getHolder().removeCallback(mPreview);
@@ -71,19 +68,22 @@ public class StartActivity extends Activity {
             mCamera = null;
         }
 
-        slimer.pause();
+
+        System.exit(0);
     }
 
     @Override
     protected void onRestart(){
         super.onRestart();
-
+        Log.i(TAG, "onRestart()");
         slimer.resume();
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP) {
+
+
+        if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
             try {
                 String command;
                 command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
@@ -96,13 +96,14 @@ public class StartActivity extends Activity {
             }
             return true;
         }
-        else if(event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN){
+        else if(event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN && event.getAction() == KeyEvent.ACTION_DOWN){
             try{
                 String command;
                 command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
                 Process proc = Runtime.getRuntime().exec(new String[] { "su", "-c", command }, null);
                 proc.waitFor();
                 Log.i(TAG, "UI Enabled");
+                slimer.resume();
             }
             catch (Exception e){
                 // TODO Write an exception handler
@@ -112,6 +113,8 @@ public class StartActivity extends Activity {
         else {
             return super.dispatchKeyEvent(event);
         }
+
+
     }
 
 
