@@ -4,8 +4,7 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
-import android.os.Handler;
-import android.os.Looper;
+import casak.ru.slimer.R;
 import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
@@ -16,13 +15,11 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class LizunView extends SurfaceView {
-    static public int WIDTH = 1280; // slimer width
+    static public int WIDTH = 800; // slimer width
     static public int HEIGHT = 800; // slimer height
 
     static final private int SEARCH_STATE = 1;
@@ -64,7 +61,7 @@ public class LizunView extends SurfaceView {
         screen_width = size.x;
         screen_height = size.y;
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(WIDTH,HEIGHT);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
         setLayoutParams(params);
 
         setZOrderOnTop(true);
@@ -95,7 +92,8 @@ public class LizunView extends SurfaceView {
         else {
             AnimationDrawable a_d = (AnimationDrawable) getBackground();
             a_d.start();
-
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
+            setLayoutParams(params);
             update();
         }
     }
@@ -138,7 +136,7 @@ public class LizunView extends SurfaceView {
         updatePosition();
         desideWhatToDo();
         updateAnimation();
-        offtabletTest();
+       // offtabletTest();
     }
     int c = 0;
     private void offtabletTest() {
@@ -151,6 +149,7 @@ public class LizunView extends SurfaceView {
     private void updatePosition() {
         setX(x);
         setY(y);
+
     }
 
     private void desideWhatToDo() {
