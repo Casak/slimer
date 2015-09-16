@@ -330,6 +330,11 @@ public class LizunView extends SurfaceView {
         Log.v("current_state", state);
     }
 
+    public void setDefaultSize() {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
+    }
+
+
     private class AnimationEndListener implements Animation.AnimationListener {
         public void onAnimationStart(Animation animation) {}
         public void onAnimationRepeat(Animation animation) {}
