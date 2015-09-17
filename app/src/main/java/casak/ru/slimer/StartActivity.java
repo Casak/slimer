@@ -50,16 +50,15 @@ public class StartActivity extends Activity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         setContentView(R.layout.activity_fullscreen);
+
         mCamera = getCameraInstance();
         mPreview = new CameraPreview(this, mCamera);
         slimer = new LizunView(this, getWindowManager());
-        preview = (RelativeLayout) findViewById(R.id.startActivity);
-        preview.addView(mPreview);
-        preview.setPadding(0, 0, 0, 0);
-        slimer.setDefaultSize();
-        slimer.setAlpha(0.7f);
-        preview.addView(slimer);
 
+        //preview = (RelativeLayout) findViewById(R.id.startActivity);
+        RelativeLayout lizunPreview = (RelativeLayout) findViewById(R.id.lizun);
+        //preview.addView(mPreview);
+        lizunPreview.addView(slimer);
 
 
     }
@@ -74,7 +73,6 @@ public class StartActivity extends Activity {
         }
 
         slimer.resume();
-
         Log.i(TAG, String.valueOf(isConnected(this)));
     }
 
