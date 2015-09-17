@@ -4,7 +4,8 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
-import casak.ru.slimer.R;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
@@ -15,12 +16,18 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LizunView extends SurfaceView {
-    static public int WIDTH = 800; // slimer width
-    static public int HEIGHT = 800; // slimer height
+    static final public int CONNECTED = 1;
+    static final public int DISCONNECTED = 2;
+
+    static public int WIDTH = 318 * 2; // slimer width
+    static public int HEIGHT = 300 * 2; // slimer height
 
     static final private int SEARCH_STATE = 1;
     static final private int BEGIN_STATE = 3;
@@ -33,6 +40,7 @@ public class LizunView extends SurfaceView {
     static final private int HIT_UP_ANIMATION = 11;
     static final private int FOUND_TURN_ANIMATION = 12;
     static final private int FOUND_SHOW_ANIMATION = 13;
+    static final private int HIT_SCREEN_ANIMATION = 14;
 
     final private float SLIMER_ALPHA = 0.8f;
     final private int SLIMER_CHARGE_ACCELERATION = 2;
@@ -41,6 +49,7 @@ public class LizunView extends SurfaceView {
     static final private int HIT_UP_ANIMATION_LENGTH = 1620; // was 1550
     static final private int HIT_SIDE_ANIMATION_LENGTH = 1040; // was 920
     static final private int THINKING_ANIMATION_LENGTH = 2820; // was 2500
+    static final private int HIT_SCREEN_ANUMATION_LENGTH = 1460;
     static final private int TURN_ANIMATION_LENGTH = 1280;
     static final private int SHOW_ANIMATION_LENGTH = 1790;
 
@@ -61,8 +70,7 @@ public class LizunView extends SurfaceView {
         screen_width = size.x;
         screen_height = size.y;
 
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
-        setLayoutParams(params);
+        setDefaultSize();
 
         setZOrderOnTop(true);
         SurfaceHolder holder = getHolder();
@@ -73,6 +81,12 @@ public class LizunView extends SurfaceView {
         updatePosition();
 
         setAlpha(SLIMER_ALPHA);
+    }
+
+    public void setDefaultSize() {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
+        params.setMargins(0,0,0,0);
+        setLayoutParams(params);
     }
 
     public void pause() {
@@ -92,8 +106,7 @@ public class LizunView extends SurfaceView {
         else {
             AnimationDrawable a_d = (AnimationDrawable) getBackground();
             a_d.start();
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
-            setLayoutParams(params);
+
             update();
         }
     }
@@ -101,7 +114,7 @@ public class LizunView extends SurfaceView {
     private void start() {
         playAnimation(R.anim.search);
 
-        x = 0;
+        x = -100;
         y = screen_height / 2 - HEIGHT / 2;
         updatePosition();
 
@@ -110,10 +123,33 @@ public class LizunView extends SurfaceView {
         a.setAnimationListener(new AnimationEndListener());
     }
 
+    public void playState(int state) {
+        switch ( state ) {
+            case DISCONNECTED:
+                is_charger_found = false;
+                break;
+            case CONNECTED:
+                is_charger_found = true;
+
+                current_state = FOUND_STATE;
+
+                playAnimation(R.anim.slimer_second_def);
+
+                moveTo( screen_width / 2, screen_height / 2);
+
+                float dr = x - getX() + WIDTH / 2;
+                if ( dr <= 0 ) setScaleX(-1);
+                else setScaleX(1);
+                break;
+        }
+    }
+
+    @Deprecated
     public void playFirstState() {
         is_charger_found = false;
     }
 
+    @Deprecated
     public void playSecondState() {
         is_charger_found = true;
 
@@ -136,13 +172,13 @@ public class LizunView extends SurfaceView {
         updatePosition();
         desideWhatToDo();
         updateAnimation();
-       // offtabletTest();
+        //offtabletTest();
     }
     int c = 0;
     private void offtabletTest() {
         if ( c++ == 10 ) {
             Log.v("current_state", "Second state activated");
-            playSecondState();
+            playState(CONNECTED);
         }
     }
 
@@ -150,6 +186,7 @@ public class LizunView extends SurfaceView {
         setX(x);
         setY(y);
 
+        Log.v("coords", "(" + String.valueOf(x) + ","+ String.valueOf(y) +")" );
     }
 
     private void desideWhatToDo() {
@@ -160,8 +197,9 @@ public class LizunView extends SurfaceView {
         }
         else {
             if ( chance < 0.3 ) current_state = CHARGE_SIDE_WALL;
-            else if ( chance < 0.5 ) current_state = THINKING_STATE;
-            else if ( chance < 0.7 ) current_state = CHARGE_UP_STATE;
+            else if ( chance < 0.45 ) current_state = THINKING_STATE;
+            else if ( chance < 0.65 ) current_state = CHARGE_UP_STATE;
+            else if ( chance < 0.8 ) current_state = HIT_SCREEN_ANIMATION;
             else current_state = SEARCH_STATE;
         }
         traceCurrentState();
@@ -193,6 +231,10 @@ public class LizunView extends SurfaceView {
             case THINKING_STATE:
                 playAnimation(R.anim.thinking);
                 waitAnimationToEnd(THINKING_ANIMATION_LENGTH);
+                break;
+            case HIT_SCREEN_ANIMATION:
+                playAnimation(R.anim.hit_screen);
+                waitAnimationToEnd(HIT_SCREEN_ANUMATION_LENGTH);
                 break;
             case FOUND_TURN_ANIMATION:
                 playAnimation(R.anim.turn_animation);
@@ -329,11 +371,6 @@ public class LizunView extends SurfaceView {
         }
         Log.v("current_state", state);
     }
-
-    public void setDefaultSize() {
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
-    }
-
 
     private class AnimationEndListener implements Animation.AnimationListener {
         public void onAnimationStart(Animation animation) {}
