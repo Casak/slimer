@@ -18,6 +18,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import casak.ru.slimer.R;;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -186,7 +187,7 @@ public class LizunView extends SurfaceView {
         setX(x);
         setY(y);
 
-        Log.v("coords", "(" + String.valueOf(x) + ","+ String.valueOf(y) +")" );
+        Log.v("coords", "(" + String.valueOf(x) + "," + String.valueOf(y) +")" );
     }
 
     private void desideWhatToDo() {

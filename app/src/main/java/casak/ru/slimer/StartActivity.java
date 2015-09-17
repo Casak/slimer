@@ -17,6 +17,9 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import com.remfils.lizuntest2.LizunView;
 
 
 // TODO Recieve a charge signal
@@ -27,7 +30,9 @@ public class StartActivity extends Activity {
     private CameraPreview mPreview;
     private RelativeLayout preview;
     private static final String TAG = "START_ACTIVITY";
-    com.remfils.lizuntest2.LizunView slimer;
+    private static LizunView slimer;
+    private PowerConnectionReceiver powerReceiver;
+    private IntentFilter mFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,17 +40,28 @@ public class StartActivity extends Activity {
 
         Log.i(TAG, "onCreate()");
 
+        powerReceiver = new PowerConnectionReceiver();
+        mFilter = new IntentFilter();
+        mFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        mFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        mFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        registerReceiver(powerReceiver, mFilter);
+
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         setContentView(R.layout.activity_fullscreen);
         mCamera = getCameraInstance();
         mPreview = new CameraPreview(this, mCamera);
-        slimer = new com.remfils.lizuntest2.LizunView(this, getWindowManager());
+        slimer = new LizunView(this, getWindowManager());
         preview = (RelativeLayout) findViewById(R.id.startActivity);
         preview.addView(mPreview);
+        preview.setPadding(0, 0, 0, 0);
+        slimer.setDefaultSize();
+        slimer.setAlpha(0.7f);
         preview.addView(slimer);
 
 
-        slimer.playFirstState();
+
     }
 
     @Override
@@ -58,6 +74,7 @@ public class StartActivity extends Activity {
         }
 
         slimer.resume();
+
         Log.i(TAG, String.valueOf(isConnected(this)));
     }
 
@@ -173,6 +190,15 @@ public class StartActivity extends Activity {
         int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
         return plugged == BatteryManager.BATTERY_STATUS_CHARGING || plugged == BatteryManager.BATTERY_PLUGGED_USB
                 || plugged == BatteryManager.BATTERY_PLUGGED_AC;
+    }
+
+    public static void changeSlimer(int STATE){
+        if(slimer != null){
+            slimer.pause();
+            slimer.playState(STATE);
+            slimer.resume();
+            Log.i(TAG, "changeSlimer to state:" + (STATE == 1 ? "connected" : "disconnected"));
+        }
     }
 
 }
