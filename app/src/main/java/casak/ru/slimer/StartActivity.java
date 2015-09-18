@@ -60,7 +60,6 @@ public class StartActivity extends Activity {
         //preview.addView(mPreview);
         lizunPreview.addView(slimer);
 
-
     }
 
     @Override
