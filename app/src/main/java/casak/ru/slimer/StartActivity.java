@@ -56,11 +56,9 @@ public class StartActivity extends Activity {
         preview = (RelativeLayout) findViewById(R.id.startActivity);
         preview.addView(mPreview);
         preview.setPadding(0, 0, 0, 0);
-        slimer.setDefaultSize();
         slimer.setAlpha(0.7f);
         preview.addView(slimer);
-
-
+        // slimer.setDefaultSize();
 
     }
 
