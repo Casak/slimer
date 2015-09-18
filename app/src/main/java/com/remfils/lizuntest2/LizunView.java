@@ -18,7 +18,6 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import casak.ru.slimer.R;;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -60,6 +59,7 @@ public class LizunView extends SurfaceView {
 
     private float x = -100, y;
     private int current_state = BEGIN_STATE;
+    private int future_state = -1;
     private boolean is_charger_found = false;
 
     public LizunView(Context context, WindowManager window_manager) {
@@ -89,7 +89,7 @@ public class LizunView extends SurfaceView {
         params.setMargins(0,0,0,0);
         setLayoutParams(params);
 
-        setPadding(0,0,0,0);
+        setPadding(0, 0, 0, 0);
     }
 
     public void pause() {
@@ -127,24 +127,37 @@ public class LizunView extends SurfaceView {
     }
 
     public void playState(int state) {
-        switch ( state ) {
-            case DISCONNECTED:
-                is_charger_found = false;
-                break;
-            case CONNECTED:
-                is_charger_found = true;
+        traceStateChange(state);
 
-                current_state = FOUND_STATE;
-
-                playAnimation(R.anim.slimer_second_def);
-
-                moveTo( screen_width / 2, screen_height / 2);
-
-                float dr = x - getX() + WIDTH / 2;
-                if ( dr <= 0 ) setScaleX(-1);
-                else setScaleX(1);
-                break;
+        if ( state == DISCONNECTED ) {
+            is_charger_found = false;
         }
+        else if ( state == CONNECTED ) {
+            if ( is_charger_found ) return;
+
+            is_charger_found = true;
+            switch ( current_state ) {
+                /*case THINKING_STATE:
+                case SEARCH_STATE:
+                    current_state = FOUND_STATE;
+                    *//*x = getX();
+                    y = getY();*//*
+                    update();
+                    break;*/
+                case FOUND_STATE:
+                case FOUND_SHOW_ANIMATION:
+                case FOUND_TURN_ANIMATION:
+                    return;
+                default:
+                    future_state = FOUND_STATE;
+            }
+        }
+    }
+
+    private void traceStateChange(int state) {
+        String state_str = state == CONNECTED ? "connected" : "disconnected";
+        Log.v("changed state to", state_str);
+
     }
 
     @Deprecated
@@ -175,14 +188,6 @@ public class LizunView extends SurfaceView {
         updatePosition();
         desideWhatToDo();
         updateAnimation();
-        //offtabletTest();
-    }
-    int c = 0;
-    private void offtabletTest() {
-        if ( c++ == 4 ) {
-            Log.v("current_state", "Second state activated");
-            playState(CONNECTED);
-        }
     }
 
     private void updatePosition() {
@@ -193,6 +198,8 @@ public class LizunView extends SurfaceView {
     }
 
     private void desideWhatToDo() {
+        if ( current_state == FOUND_STATE ) return;
+
         double chance = Math.random();
         if ( is_charger_found ) {
             if ( chance < 0.4 ) current_state = FOUND_TURN_ANIMATION;
@@ -291,21 +298,6 @@ public class LizunView extends SurfaceView {
     }
 
     private Animation waitAnimationToEnd (int time) {
-//        Log.v("msg:", "animation is waiting. state: " + current_state);
-//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.v("msg:", "stop animation wait. state: " + current_state);
-//                animationEndCallback();
-//                Log.v("msg:", "after animationEndCallback(). state: " + current_state);
-//            }
-//        }, time);
-//        new Timer().schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                animationEndCallback();
-//            }
-//        }, time);
         Animation a = moveTo(getX() + WIDTH / 2, getY() + HEIGHT / 2);
         a.setDuration(time);
         a.setInterpolator(new LinearInterpolator());
@@ -340,6 +332,11 @@ public class LizunView extends SurfaceView {
                 playAnimation(R.anim.turn_animation);
                 waitAnimationToEnd(TURN_ANIMATION_LENGTH);
                 return;
+        }
+
+        if ( future_state != -1 ) {
+            current_state = future_state;
+            future_state = -1;
         }
 
         update();
