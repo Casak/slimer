@@ -88,6 +88,8 @@ public class LizunView extends SurfaceView {
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
         params.setMargins(0,0,0,0);
         setLayoutParams(params);
+
+        setPadding(0,0,0,0);
     }
 
     public void pause() {
@@ -160,7 +162,7 @@ public class LizunView extends SurfaceView {
 
         moveTo( screen_width / 2, screen_height / 2);
 
-        float dr = x - getX() + WIDTH / 2;
+        float dr = x - getX() - WIDTH / 2;
         if ( dr <= 0 ) setScaleX(-1);
         else setScaleX(1);
     }
@@ -177,7 +179,7 @@ public class LizunView extends SurfaceView {
     }
     int c = 0;
     private void offtabletTest() {
-        if ( c++ == 10 ) {
+        if ( c++ == 4 ) {
             Log.v("current_state", "Second state activated");
             playState(CONNECTED);
         }
@@ -187,7 +189,7 @@ public class LizunView extends SurfaceView {
         setX(x);
         setY(y);
 
-        Log.v("coords", "(" + String.valueOf(x) + "," + String.valueOf(y) +")" );
+        Log.v("coords", "(" + String.valueOf(x) + ","+ String.valueOf(y) +")" );
     }
 
     private void desideWhatToDo() {
