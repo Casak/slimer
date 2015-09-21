@@ -20,10 +20,10 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
                 notCharging = status == BatteryManager.BATTERY_STATUS_NOT_CHARGING,
                 acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
 
-        if(acCharge) {
+        if(!isInitialStickyBroadcast() && acCharge) {
             StartActivity.changeSlimer(LizunView.CONNECTED);
         }
-        else if(notCharging){
+        else if(!isInitialStickyBroadcast() && notCharging){
             StartActivity.changeSlimer(LizunView.DISCONNECTED);
         }
     }

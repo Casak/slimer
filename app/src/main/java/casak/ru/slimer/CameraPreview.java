@@ -1,12 +1,14 @@
 package casak.ru.slimer;
 
 import android.content.Context;
+import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by Casak on 11.09.2015.
@@ -22,12 +24,18 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder = getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        ;
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
         try {
             if(mCamera != null){
                 mCamera.setPreviewDisplay(holder);
+                Camera.Parameters parameters = mCamera.getParameters();
+                parameters.setPreviewSize(720, 480);
+                requestLayout();
+                mCamera.setParameters(parameters);
+                requestLayout();
                 mCamera.startPreview();
             }
         }

@@ -1,8 +1,22 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools" android:layout_width="1280px"
-android:layout_height="800px" tools:context=".FullscreenActivity"
-android:id="@+id/startActivity" android:keepScreenOn="true">
-    <RelativeLayout android:layout_width="1280px"
-        android:layout_height="800px" tools:context=".FullscreenActivity"
-        android:id="@+id/lizun" />
-</RelativeLayout>
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="1280px"
+    android:layout_height="800px"
+    tools:context=".FullscreenActivity"
+    android:id="@+id/startActivity"
+    android:keepScreenOn="true" >
+    <FrameLayout
+        android:layout_width="1280px"
+        android:layout_height="800px"
+        tools:context=".FullscreenActivity"
+        android:id="@+id/camera" >
+        <FrameLayout
+            android:layout_width="1280px"
+            android:layout_height="800px"
+            android:layout_above="@+id/camera"
+            android:clickable="true"
+            android:id="@+id/slimer" />
+    </FrameLayout>
+</FrameLayout>
