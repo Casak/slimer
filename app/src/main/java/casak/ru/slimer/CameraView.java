@@ -24,7 +24,8 @@ public class CameraView extends TextureView implements TextureView.SurfaceTextur
         try {
             mCamera.setPreviewTexture(arg0);
         }
-        catch (IOException t) {}
+        catch (IOException t) {//TODO Write an exception handler
+        }
 
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(720, 480);

@@ -5,6 +5,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
+import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -14,7 +15,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 
 public
-class LizunView extends SurfaceView implements SurfaceHolder.Callback{
+class LizunView extends GLSurfaceView implements SurfaceHolder.Callback{
     private static final String TAG = "LIZUN_VIEW";
     private static final int START_ANIMATION = 0;
     private static final int SCREEN_WIDTH = 1280;
@@ -113,12 +114,6 @@ class LizunView extends SurfaceView implements SurfaceHolder.Callback{
 
     private void playWallHit(){
         Log.d(TAG, "playWallHit()");
-        if(this.getX() != SCREEN_WIDTH - SLIMER_WIDTH) {
-            animate().x(SCREEN_WIDTH - SLIMER_WIDTH)
-                    .y(currentY)
-                    .setDuration(160);
-            Log.d(TAG, "after moveTo() " + currentX);
-        }
         setBackgroundResource(R.anim.wall_hit_charge); //160ms
         slimerAnimation = (AnimationDrawable) getBackground();
         slimerAnimation.start();

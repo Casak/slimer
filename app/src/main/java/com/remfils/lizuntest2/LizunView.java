@@ -1,32 +1,27 @@
 package com.remfils.lizuntest2;
 
-import android.app.Activity;
+
+import android.animation.Animator;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
+import android.view.ViewPropertyAnimator;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.BounceInterpolator;
+import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
 import casak.ru.slimer.R;
 
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class LizunView extends SurfaceView {
     static final public int CONNECTED = 1;
@@ -70,8 +65,6 @@ public class LizunView extends SurfaceView {
 
     public LizunView(Context context, WindowManager window_manager) {
         super(context);
-        Log.i("LIZUN", "LizunView Constructor()");
-        getHolder().setFixedSize(1280,800);
 
         Display d = window_manager.getDefaultDisplay();
         Point size = new Point();
@@ -90,21 +83,17 @@ public class LizunView extends SurfaceView {
         updatePosition();
 
         setAlpha(SLIMER_ALPHA);
-
     }
 
     public void setDefaultSize() {
-        Log.i("LIZUN", "setDefaultSize()");
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(WIDTH,HEIGHT);
-        params.setMargins(0, 0,0,0);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
+        params.setMargins(0,0,0,0);
         setLayoutParams(params);
 
         setPadding(0, 0, 0, 0);
-
     }
 
     public void pause() {
-        Log.i("LIZUN", "pause()");
         AnimationDrawable a_d = (AnimationDrawable) getBackground();
         a_d.stop();
 
@@ -114,7 +103,6 @@ public class LizunView extends SurfaceView {
     }
 
     public void resume() {
-        Log.i("LIZUN", "resume()");
         if ( is_first_time ) {
             start();
             is_first_time = false;
@@ -128,20 +116,18 @@ public class LizunView extends SurfaceView {
     }
 
     private void start() {
-        Log.i("LIZUN", "start()");
         playAnimation(R.anim.search);
 
         x = -100;
         y = screen_height / 2 - HEIGHT / 2;
         updatePosition();
 
-        TranslateAnimation a = moveTo(screen_width / 2, screen_height / 2);
+        moveTo(screen_width / 2, screen_height / 2);
 
-        a.setAnimationListener(new AnimationEndListener());
+        //a.setAnimationListener(new AnimationEndListener());
     }
 
     public void playState(int state) {
-        Log.i("LIZUN", "playState()");
         traceStateChange(state);
 
         if ( state == DISCONNECTED ) {
@@ -152,13 +138,6 @@ public class LizunView extends SurfaceView {
 
             is_charger_found = true;
             switch ( current_state ) {
-                /*case THINKING_STATE:
-                case SEARCH_STATE:
-                    current_state = FOUND_STATE;
-                    *//*x = getX();
-                    y = getY();*//*
-                    update();
-                    break;*/
                 case FOUND_STATE:
                 case FOUND_SHOW_ANIMATION:
                 case FOUND_TURN_ANIMATION:
@@ -170,21 +149,17 @@ public class LizunView extends SurfaceView {
     }
 
     private void traceStateChange(int state) {
-        Log.i("LIZUN", "traceStateChange()");
         String state_str = state == CONNECTED ? "connected" : "disconnected";
         Log.v("changed state to", state_str);
-
     }
 
     @Deprecated
     public void playFirstState() {
-        Log.i("LIZUN", "playFirstState()");
         is_charger_found = false;
     }
 
     @Deprecated
     public void playSecondState() {
-        Log.i("LIZUN", "playSecondState()");
         is_charger_found = true;
 
         current_state = FOUND_STATE;
@@ -199,27 +174,23 @@ public class LizunView extends SurfaceView {
     }
 
     private void setState(int state) {
-        Log.i("LIZUN", "seState()");
         current_state = state;
     }
 
     private void update () {
-        Log.i("LIZUN", "update()");
         updatePosition();
         desideWhatToDo();
         updateAnimation();
     }
 
     private void updatePosition() {
-        Log.i("LIZUN", "updatePosition()");
-        setX(x);
-        setY(y);
+        //setX(x);
+        //setY(y);
 
-        Log.v("coords", "(" + String.valueOf(x) + "," + String.valueOf(y) + ")");
+        Log.v("coords", "(" + String.valueOf(x) + ","+ String.valueOf(y) +")" );
     }
 
     private void desideWhatToDo() {
-        Log.i("LIZUN", "desideWhatToDo()");
         if ( current_state == FOUND_STATE ) return;
 
         double chance = Math.random();
@@ -238,8 +209,7 @@ public class LizunView extends SurfaceView {
     }
 
     private void updateAnimation() {
-        Log.i("LIZUN", "updateAnimation()");
-        TranslateAnimation a;
+        ViewPropertyAnimator a;
         switch ( current_state ) {
             case SEARCH_STATE:
                 playAnimation(R.anim.search);
@@ -249,37 +219,34 @@ public class LizunView extends SurfaceView {
                 moveTo(screen_width / 2, screen_height / 2);
                 break;
             case CHARGE_SIDE_WALL:
+                playAnimation(R.anim.wall_hit_animation);
                 playAnimation(R.anim.wall_hit_charge);
                 float next_x = getScaleX() > 0 ? screen_width - WIDTH / 2 : WIDTH / 2;
                 a = moveTo (next_x, getY() + HEIGHT / 2);
-                a.setInterpolator(new LinearInterpolator());
+                a.setInterpolator(new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION));
                 a.setDuration(SLIMER_FLIGHT_DURATION);
                 break;
             case CHARGE_UP_STATE:
                 playAnimation(R.anim.hit_up_charge);
                 a = moveTo(getX() + WIDTH / 2, HEIGHT / 2);
-                a.setInterpolator(new LinearInterpolator());
+                a.setInterpolator(new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION));
                 a.setDuration(SLIMER_FLIGHT_DURATION);
                 break;
             case THINKING_STATE:
                 playAnimation(R.anim.thinking);
-                waitAnimationToEnd(SHOW_ANIMATION_LENGTH);
-
+                waitAnimationToEnd(THINKING_ANIMATION_LENGTH);
                 break;
             case HIT_SCREEN_ANIMATION:
                 playAnimation(R.anim.hit_screen);
-                waitAnimationToEnd(SHOW_ANIMATION_LENGTH);
-
+                waitAnimationToEnd(HIT_SCREEN_ANUMATION_LENGTH);
                 break;
             case FOUND_TURN_ANIMATION:
                 playAnimation(R.anim.turn_animation);
-                waitAnimationToEnd(SHOW_ANIMATION_LENGTH);
-
+                waitAnimationToEnd(TURN_ANIMATION_LENGTH);
                 break;
             case FOUND_SHOW_ANIMATION:
                 playAnimation(R.anim.show_animation);
                 waitAnimationToEnd(SHOW_ANIMATION_LENGTH);
-
                 break;
             default:
                 //setState(SEARCH_STATE);
@@ -287,7 +254,6 @@ public class LizunView extends SurfaceView {
     }
 
     private void moveRandom() {
-        Log.i("LIZUN", "moveRandom()");
         double end_x=0, end_y=0;
 
         end_x = ( screen_width - WIDTH ) * Math.random() + WIDTH / 2;
@@ -300,27 +266,32 @@ public class LizunView extends SurfaceView {
         moveTo((float) end_x, (float) end_y);
     }
 
-    private TranslateAnimation moveTo(float to_x, float to_y) {
-        Log.i("LIZUN", "moveTo()");
-        double dx = x - to_x + WIDTH / 2;
-        double dy = y - to_y + HEIGHT / 2;
+    private ViewPropertyAnimator moveTo(float to_x, float to_y) {
+        double dx = x;
+        double dy = y;
 
         x = to_x - WIDTH / 2;
         y = to_y - HEIGHT / 2;
 
-        final TranslateAnimation a = new TranslateAnimation(0,x - getX() , 0,y - getY() );
-        a.setDuration(1500);
-        a.setInterpolator(new LinearInterpolator());
+        dx = x;
+        dy = y;
 
-        setAnimation(a);
+        double dr = Math.sqrt(dx * dx + dy * dy);
 
-        a.setAnimationListener(new AnimationEndListener());
+        ViewPropertyAnimator a = animate().x(x).y(y).setDuration(Math.round(1500 / screen_width * dr)).setListener(new AnimationEndListener());
+
+//        final TranslateAnimation a = new TranslateAnimation(0,x - getX() , 0,y - getY() );
+//        a.setDuration(1500);
+//        a.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        //setAnimation(a);
+
+        //a.setAnimationListener(new AnimationEndListener());
 
         return a;
     }
 
     private void playAnimation(int anim_id) {
-        Log.i("LIZUN", "playAnimation()");
         setBackgroundResource(anim_id);
 
         AnimationDrawable a = (AnimationDrawable) getBackground();
@@ -328,23 +299,17 @@ public class LizunView extends SurfaceView {
     }
 
     private Animation waitAnimationToEnd (int time) {
-        Log.i("LIZUN", "waitAnimationToEnd()");
-        Animation a = moveTo(getX() + WIDTH / 2, getY() + HEIGHT / 2);
+        ViewPropertyAnimator a = moveTo(getX() + WIDTH / 2, getY() + HEIGHT / 2);
         a.setDuration(time);
         a.setInterpolator(new LinearInterpolator());
         return null;
     }
 
     private void turn() {
-        Log.i("LIZUN", "turn()");
-        playAnimation(R.anim.turn_animation);
-        waitAnimationToEnd(HIT_SIDE_ANIMATION_LENGTH);
         setScaleX(getScaleX() * -1);
-
     }
 
     private void animationEndCallback() {
-        Log.i("LIZUN", "animationEndCallback()");
         switch ( current_state ) {
             case CHARGE_SIDE_WALL:
                 updatePosition();
@@ -360,7 +325,6 @@ public class LizunView extends SurfaceView {
                 return;
             case HIT_SIDE_ANIMATION:
                 turn();
-                waitAnimationToEnd(TURN_ANIMATION_LENGTH);
                 break;
             case FOUND_STATE:
                 updatePosition();
@@ -380,7 +344,6 @@ public class LizunView extends SurfaceView {
     }
 
     private void traceCurrentState() {
-        Log.i("LIZUN", "traceCurrentState()");
         String state;
         switch (current_state) {
             case SEARCH_STATE:
@@ -410,13 +373,26 @@ public class LizunView extends SurfaceView {
         Log.v("current_state", state);
     }
 
-    private class AnimationEndListener implements Animation.AnimationListener {
-        public void onAnimationStart(Animation animation) {Log.i("LIZUN", "onAnimationStart()");}
-        public void onAnimationRepeat(Animation animation) {Log.i("LIZUN", "onAnimationRepeat()");}
-        public void onAnimationEnd(Animation animation) {Log.i("LIZUN", "onAnimationEnd()");
+    private class AnimationEndListener implements Animator.AnimatorListener {
+
+        @Override
+        public void onAnimationStart(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
             animationEndCallback();
         }
+
+        @Override
+        public void onAnimationCancel(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+
+        }
     }
-
-
 }
