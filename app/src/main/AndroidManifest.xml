@@ -8,9 +8,11 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <application
         android:allowBackup="true"
+        android:label="Лизун"
         android:icon="@mipmap/ic_launcher"
         android:hardwareAccelerated="true"
         android:theme="@style/AppTheme" >
+
         <activity
             android:name=".StartActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
