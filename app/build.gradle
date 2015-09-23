@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 15
-    buildToolsVersion "22.0.1"
+    buildToolsVersion '23.0.0'
 
     defaultConfig {
         applicationId "casak.ru.slimer"
         minSdkVersion 14
-        targetSdkVersion 22
+        targetSdkVersion 15
         versionCode 1
         versionName "1.0"
     }

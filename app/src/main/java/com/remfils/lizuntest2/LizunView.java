@@ -7,19 +7,16 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
 import android.util.Log;
-import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewPropertyAnimator;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
-import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 
+import casak.ru.slimer.LizunAudio;
 import casak.ru.slimer.R;
 
 
@@ -62,43 +59,44 @@ public class LizunView extends SurfaceView {
     private int current_state = BEGIN_STATE;
     private int future_state = -1;
     private boolean is_charger_found = false;
+    private boolean alreadyTurn = false;
+    private AnimationDrawable animationDrawable;
+    private ViewPropertyAnimator propertyAnimator;
+    private LinearInterpolator linearInterpolator;
+    private AccelerateInterpolator accelerateInterpolator;
 
     public LizunView(Context context, WindowManager window_manager) {
         super(context);
 
-        Display d = window_manager.getDefaultDisplay();
         Point size = new Point();
-        d.getSize(size);
+        window_manager.getDefaultDisplay().getSize(size);
         screen_width = size.x;
         screen_height = size.y;
-
-        setDefaultSize();
-
-        setZOrderOnTop(true);
-        SurfaceHolder holder = getHolder();
-        holder.setFormat(PixelFormat.TRANSPARENT);
-
         y = screen_height / 2;
 
-        updatePosition();
+        linearInterpolator = new LinearInterpolator();
+        accelerateInterpolator = new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION);
 
+        setLayoutParams(new FrameLayout.LayoutParams(WIDTH,HEIGHT));
         setAlpha(SLIMER_ALPHA);
+        setZOrderOnTop(true);
+
+        SurfaceHolder holder = getHolder();
+        holder.setFormat(PixelFormat.TRANSPARENT);
     }
 
-    public void setDefaultSize() {
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WIDTH,HEIGHT);
-        params.setMargins(0,0,0,0);
-        setLayoutParams(params);
+    private void start() {
+        playAnimation(R.anim.search);
 
-        setPadding(0, 0, 0, 0);
+        x = -100;
+        y = screen_height / 2 - HEIGHT / 2;
+
+        moveTo(screen_width / 2, screen_height / 2);
     }
 
     public void pause() {
-        AnimationDrawable a_d = (AnimationDrawable) getBackground();
-        a_d.stop();
-
-        updatePosition();
-
+        animationDrawable = (AnimationDrawable) getBackground();
+        animationDrawable.stop();
         setAnimation(null);
     }
 
@@ -108,23 +106,10 @@ public class LizunView extends SurfaceView {
             is_first_time = false;
         }
         else {
-            AnimationDrawable a_d = (AnimationDrawable) getBackground();
-            a_d.start();
-
+            animationDrawable = (AnimationDrawable) getBackground();
+            animationDrawable.start();
             update();
         }
-    }
-
-    private void start() {
-        playAnimation(R.anim.search);
-
-        x = -100;
-        y = screen_height / 2 - HEIGHT / 2;
-        updatePosition();
-
-        moveTo(screen_width / 2, screen_height / 2);
-
-        //a.setAnimationListener(new AnimationEndListener());
     }
 
     public void playState(int state) {
@@ -132,6 +117,7 @@ public class LizunView extends SurfaceView {
 
         if ( state == DISCONNECTED ) {
             is_charger_found = false;
+            alreadyTurn = false;
         }
         else if ( state == CONNECTED ) {
             if ( is_charger_found ) return;
@@ -148,59 +134,32 @@ public class LizunView extends SurfaceView {
         }
     }
 
-    private void traceStateChange(int state) {
-        String state_str = state == CONNECTED ? "connected" : "disconnected";
-        Log.v("changed state to", state_str);
-    }
-
-    @Deprecated
-    public void playFirstState() {
-        is_charger_found = false;
-    }
-
-    @Deprecated
-    public void playSecondState() {
-        is_charger_found = true;
-
-        current_state = FOUND_STATE;
-
-        playAnimation(R.anim.slimer_second_def);
-
-        moveTo( screen_width / 2, screen_height / 2);
-
-        float dr = x - getX() - WIDTH / 2;
-        if ( dr <= 0 ) setScaleX(-1);
-        else setScaleX(1);
-    }
-
-    private void setState(int state) {
-        current_state = state;
-    }
 
     private void update () {
-        updatePosition();
         desideWhatToDo();
         updateAnimation();
     }
 
-    private void updatePosition() {
-        //setX(x);
-        //setY(y);
 
-        Log.v("coords", "(" + String.valueOf(x) + ","+ String.valueOf(y) +")" );
-    }
 
     private void desideWhatToDo() {
         if ( current_state == FOUND_STATE ) return;
 
         double chance = Math.random();
         if ( is_charger_found ) {
-            if ( chance < 0.4 ) current_state = FOUND_TURN_ANIMATION;
+            if (!alreadyTurn) {
+                alreadyTurn = true;
+                LizunAudio.playSound(LizunAudio.CONNECT_SOUND);
+                current_state = FOUND_TURN_ANIMATION;
+            }
             else current_state = FOUND_SHOW_ANIMATION;
         }
         else {
             if ( chance < 0.3 ) current_state = CHARGE_SIDE_WALL;
-            else if ( chance < 0.45 ) current_state = THINKING_STATE;
+            else if ( chance < 0.45 ) {
+                if ( current_state == THINKING_STATE ) current_state = SEARCH_STATE;
+                else current_state = THINKING_STATE;
+            }
             else if ( chance < 0.65 ) current_state = CHARGE_UP_STATE;
             else if ( chance < 0.8 ) current_state = HIT_SCREEN_ANIMATION;
             else current_state = SEARCH_STATE;
@@ -209,7 +168,6 @@ public class LizunView extends SurfaceView {
     }
 
     private void updateAnimation() {
-        ViewPropertyAnimator a;
         switch ( current_state ) {
             case SEARCH_STATE:
                 playAnimation(R.anim.search);
@@ -222,21 +180,23 @@ public class LizunView extends SurfaceView {
                 playAnimation(R.anim.wall_hit_animation);
                 playAnimation(R.anim.wall_hit_charge);
                 float next_x = getScaleX() > 0 ? screen_width - WIDTH / 2 : WIDTH / 2;
-                a = moveTo (next_x, getY() + HEIGHT / 2);
-                a.setInterpolator(new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION));
-                a.setDuration(SLIMER_FLIGHT_DURATION);
+                propertyAnimator = moveTo (next_x, getY() + HEIGHT / 2);
+                propertyAnimator.setInterpolator(accelerateInterpolator);
+                propertyAnimator.setDuration(SLIMER_FLIGHT_DURATION);
                 break;
             case CHARGE_UP_STATE:
                 playAnimation(R.anim.hit_up_charge);
-                a = moveTo(getX() + WIDTH / 2, HEIGHT / 2);
-                a.setInterpolator(new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION));
-                a.setDuration(SLIMER_FLIGHT_DURATION);
+                propertyAnimator = moveTo(getX() + WIDTH / 2, HEIGHT / 2);
+                propertyAnimator.setInterpolator(accelerateInterpolator);
+                propertyAnimator.setDuration(SLIMER_FLIGHT_DURATION);
                 break;
             case THINKING_STATE:
+                LizunAudio.playSound(LizunAudio.THINK_SOUND);
                 playAnimation(R.anim.thinking);
                 waitAnimationToEnd(THINKING_ANIMATION_LENGTH);
                 break;
             case HIT_SCREEN_ANIMATION:
+                LizunAudio.playSound(LizunAudio.HIT_SCREEN_SOUND);
                 playAnimation(R.anim.hit_screen);
                 waitAnimationToEnd(HIT_SCREEN_ANUMATION_LENGTH);
                 break;
@@ -248,22 +208,7 @@ public class LizunView extends SurfaceView {
                 playAnimation(R.anim.show_animation);
                 waitAnimationToEnd(SHOW_ANIMATION_LENGTH);
                 break;
-            default:
-                //setState(SEARCH_STATE);
         }
-    }
-
-    private void moveRandom() {
-        double end_x=0, end_y=0;
-
-        end_x = ( screen_width - WIDTH ) * Math.random() + WIDTH / 2;
-        end_y = ( screen_height - HEIGHT ) * Math.random() + HEIGHT / 2;
-
-        if ( (getScaleX() > 0 && end_x < x + WIDTH / 2 ) || ( getScaleX() < 0 && end_x > x + WIDTH / 2 ) ) {
-            turn();
-        }
-
-        moveTo((float) end_x, (float) end_y);
     }
 
     private ViewPropertyAnimator moveTo(float to_x, float to_y) {
@@ -278,30 +223,36 @@ public class LizunView extends SurfaceView {
 
         double dr = Math.sqrt(dx * dx + dy * dy);
 
-        ViewPropertyAnimator a = animate().x(x).y(y).setDuration(Math.round(1500 / screen_width * dr)).setListener(new AnimationEndListener());
 
-//        final TranslateAnimation a = new TranslateAnimation(0,x - getX() , 0,y - getY() );
-//        a.setDuration(1500);
-//        a.setInterpolator(new AccelerateDecelerateInterpolator());
+        propertyAnimator = animate().x(x).y(y).setDuration(Math.round(1500 / screen_width * dr))
+                .setListener(new AnimationEndListener());
+        return propertyAnimator;
+    }
 
-        //setAnimation(a);
+    private void moveRandom() {
+        double  end_x=0, 
+                end_y=0;
+        LizunAudio.playSound(LizunAudio.OINK_SOUND);
+        end_x = ( screen_width - WIDTH ) * Math.random() + WIDTH / 2;
+        end_y = ( screen_height - HEIGHT ) * Math.random() + HEIGHT / 2;
 
-        //a.setAnimationListener(new AnimationEndListener());
+        if ( (getScaleX() > 0 && end_x < x + WIDTH / 2 ) || ( getScaleX() < 0 && end_x > x + WIDTH / 2 ) ) {
+            turn();
+        }
 
-        return a;
+        moveTo((float) end_x, (float) end_y);
     }
 
     private void playAnimation(int anim_id) {
         setBackgroundResource(anim_id);
-
-        AnimationDrawable a = (AnimationDrawable) getBackground();
-        a.start();
+        animationDrawable = (AnimationDrawable) getBackground();
+        animationDrawable.start();
     }
 
     private Animation waitAnimationToEnd (int time) {
-        ViewPropertyAnimator a = moveTo(getX() + WIDTH / 2, getY() + HEIGHT / 2);
-        a.setDuration(time);
-        a.setInterpolator(new LinearInterpolator());
+        propertyAnimator = moveTo(getX() + WIDTH / 2, getY() + HEIGHT / 2);
+        propertyAnimator.setDuration(time);
+        propertyAnimator.setInterpolator(linearInterpolator);
         return null;
     }
 
@@ -312,13 +263,13 @@ public class LizunView extends SurfaceView {
     private void animationEndCallback() {
         switch ( current_state ) {
             case CHARGE_SIDE_WALL:
-                updatePosition();
+                LizunAudio.playSound(LizunAudio.HIT_WALL_SOUND);
                 current_state = HIT_SIDE_ANIMATION;
                 playAnimation(R.anim.wall_hit_animation);
                 waitAnimationToEnd(HIT_SIDE_ANIMATION_LENGTH);
                 return;
             case CHARGE_UP_STATE:
-                updatePosition();
+                LizunAudio.playSound(LizunAudio.HIT_TOP_SOUND);
                 current_state = HIT_UP_ANIMATION;
                 playAnimation(R.anim.hit_celling_animation);
                 waitAnimationToEnd(HIT_UP_ANIMATION_LENGTH);
@@ -327,12 +278,12 @@ public class LizunView extends SurfaceView {
                 turn();
                 break;
             case FOUND_STATE:
-                updatePosition();
                 setScaleX(-1);
                 current_state = FOUND_TURN_ANIMATION;
                 playAnimation(R.anim.turn_animation);
                 waitAnimationToEnd(TURN_ANIMATION_LENGTH);
                 return;
+
         }
 
         if ( future_state != -1 ) {
@@ -341,6 +292,11 @@ public class LizunView extends SurfaceView {
         }
 
         update();
+    }
+
+    private void traceStateChange(int state) {
+        String state_str = state == CONNECTED ? "connected" : "disconnected";
+        Log.d("changed state to", state_str);
     }
 
     private void traceCurrentState() {
@@ -370,14 +326,13 @@ public class LizunView extends SurfaceView {
             default:
                 state = String.valueOf(current_state);
         }
-        Log.v("current_state", state);
+        Log.d("current_state", state);
     }
 
     private class AnimationEndListener implements Animator.AnimatorListener {
 
         @Override
         public void onAnimationStart(Animator animation) {
-
         }
 
         @Override
@@ -387,12 +342,10 @@ public class LizunView extends SurfaceView {
 
         @Override
         public void onAnimationCancel(Animator animation) {
-
         }
 
         @Override
         public void onAnimationRepeat(Animator animation) {
-
         }
     }
 }
