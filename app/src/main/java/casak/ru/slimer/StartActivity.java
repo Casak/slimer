@@ -4,13 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-
-
+import android.widget.Toast;
 import com.remfils.lizuntest2.LizunView;
+
 
 public class StartActivity extends Activity {
     private static final String TAG = "START_ACTIVITY";
@@ -26,8 +25,6 @@ public class StartActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(TAG, "onCreate()");
-
         powerReceiver = new PowerConnectionReceiver();
         mFilter = new IntentFilter();
         mFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -36,6 +33,7 @@ public class StartActivity extends Activity {
         registerReceiver(powerReceiver, mFilter);
 
         LizunAudio.init(this);
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         setContentView(R.layout.activity_fullscreen);
 
@@ -47,21 +45,17 @@ public class StartActivity extends Activity {
         preview.addView(slimer);
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume()");
         slimer.resume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause()");
         System.exit(1);
     }
-
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
@@ -71,7 +65,7 @@ public class StartActivity extends Activity {
                 command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
                 Process proc = Runtime.getRuntime().exec(new String[] { "su", "-c", command }, null);
                 proc.waitFor();
-                Log.d(TAG, "UI Enabled");
+                Toast.makeText(getApplicationContext(), "UI Enabled", Toast.LENGTH_LONG).show();
             }
             catch (Exception e){
                 return super.dispatchKeyEvent(event);
@@ -84,8 +78,7 @@ public class StartActivity extends Activity {
                 command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
                 Process proc = Runtime.getRuntime().exec(new String[]{"su", "-c", command}, null);
                 proc.waitFor();
-                Log.d(TAG, "UI Disabled");
-
+                Toast.makeText(getApplicationContext(), "UI Disabled", Toast.LENGTH_LONG).show();
             }
             catch (Exception e){
                 return super.dispatchKeyEvent(event);
@@ -95,14 +88,12 @@ public class StartActivity extends Activity {
         else return super.dispatchKeyEvent(event);
     }
 
-
     public static void changeSlimer(int STATE){
         if(slimer != null && state != STATE){
             state = STATE;
             slimer.pause();
             slimer.playState(STATE);
             slimer.resume();
-            Log.d(TAG, "changeSlimer to state:" + (STATE == 1 ? "connected" : "disconnected"));
         }
     }
 }

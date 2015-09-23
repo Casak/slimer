@@ -1,12 +1,10 @@
 package com.remfils.lizuntest2;
 
-
 import android.animation.Animator;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewPropertyAnimator;
@@ -15,12 +13,13 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
-
 import casak.ru.slimer.LizunAudio;
 import casak.ru.slimer.R;
 
 
 public class LizunView extends SurfaceView {
+    private static final String TAG = "LIZUN_VIEW";
+
     static final public int CONNECTED = 1;
     static final public int DISCONNECTED = 2;
 
@@ -113,8 +112,6 @@ public class LizunView extends SurfaceView {
     }
 
     public void playState(int state) {
-        traceStateChange(state);
-
         if ( state == DISCONNECTED ) {
             is_charger_found = false;
             alreadyTurn = false;
@@ -134,19 +131,16 @@ public class LizunView extends SurfaceView {
         }
     }
 
-
     private void update () {
         desideWhatToDo();
         updateAnimation();
     }
 
-
-
     private void desideWhatToDo() {
-        if ( current_state == FOUND_STATE ) return;
+        if (current_state == FOUND_STATE) return;
 
         double chance = Math.random();
-        if ( is_charger_found ) {
+        if (is_charger_found) {
             if (!alreadyTurn) {
                 alreadyTurn = true;
                 LizunAudio.playSound(LizunAudio.CONNECT_SOUND);
@@ -155,20 +149,19 @@ public class LizunView extends SurfaceView {
             else current_state = FOUND_SHOW_ANIMATION;
         }
         else {
-            if ( chance < 0.3 ) current_state = CHARGE_SIDE_WALL;
-            else if ( chance < 0.45 ) {
-                if ( current_state == THINKING_STATE ) current_state = SEARCH_STATE;
+            if (chance < 0.3) current_state = CHARGE_SIDE_WALL;
+            else if ( chance < 0.45) {
+                if (current_state == THINKING_STATE) current_state = SEARCH_STATE;
                 else current_state = THINKING_STATE;
             }
-            else if ( chance < 0.65 ) current_state = CHARGE_UP_STATE;
-            else if ( chance < 0.8 ) current_state = HIT_SCREEN_ANIMATION;
+            else if (chance < 0.65) current_state = CHARGE_UP_STATE;
+            else if (chance < 0.8) current_state = HIT_SCREEN_ANIMATION;
             else current_state = SEARCH_STATE;
         }
-        traceCurrentState();
     }
 
     private void updateAnimation() {
-        switch ( current_state ) {
+        switch (current_state) {
             case SEARCH_STATE:
                 playAnimation(R.anim.search);
                 moveRandom();
@@ -292,41 +285,6 @@ public class LizunView extends SurfaceView {
         }
 
         update();
-    }
-
-    private void traceStateChange(int state) {
-        String state_str = state == CONNECTED ? "connected" : "disconnected";
-        Log.d("changed state to", state_str);
-    }
-
-    private void traceCurrentState() {
-        String state;
-        switch (current_state) {
-            case SEARCH_STATE:
-                state = "searching";
-                break;
-            case FOUND_STATE:
-                state = "found";
-                break;
-            case CHARGE_SIDE_WALL:
-                state = "charging side wall";
-                break;
-            case CHARGE_UP_STATE:
-                state = "chargin celling";
-                break;
-            case THINKING_STATE:
-                state = "thinking";
-                break;
-            case FOUND_TURN_ANIMATION:
-                state = "looking around";
-                break;
-            case FOUND_SHOW_ANIMATION:
-                state = "showing whats up";
-                break;
-            default:
-                state = String.valueOf(current_state);
-        }
-        Log.d("current_state", state);
     }
 
     private class AnimationEndListener implements Animator.AnimatorListener {

@@ -2,9 +2,7 @@ package casak.ru.slimer;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.util.Log;
 
-import java.util.Locale;
 
 public class LizunAudio {
 
@@ -18,25 +16,20 @@ public class LizunAudio {
     public static final int OINK_SOUND = R.raw.raw_oink;
     public static final int CONNECT_SOUND = R.raw.raw_connect;
 
-    public static void init(Context context_) {
-        context = context_;
+    public static void init(Context c) {
+        context = c;
     }
 
     public static void playSound(int sound_id) {
         if ( sound_id == 0 ) return;
 
-
-            mp = MediaPlayer.create(context, sound_id);
-            mp.start();
-            mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    mp.release();
-                }
-            });
-            Log.v("MEDIA PLAYER", "" + mp.getDuration());
-
-
-
+        mp = MediaPlayer.create(context, sound_id);
+        mp.start();
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                mp.release();
+            }
+        });
     }
 }
 
