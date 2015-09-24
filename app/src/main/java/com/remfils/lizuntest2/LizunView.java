@@ -38,6 +38,7 @@ public class LizunView extends SurfaceView {
     static final private int FOUND_TURN_ANIMATION = 12;
     static final private int FOUND_SHOW_ANIMATION = 13;
     static final private int HIT_SCREEN_ANIMATION = 14;
+    static final private int KNOCK_SCREEN_ANIMATION = 15;
 
     final private float SLIMER_ALPHA = 0.8f;
     final private int SLIMER_CHARGE_ACCELERATION = 2;
@@ -49,6 +50,7 @@ public class LizunView extends SurfaceView {
     static final private int HIT_SCREEN_ANUMATION_LENGTH = 1460;
     static final private int TURN_ANIMATION_LENGTH = 1280;
     static final private int SHOW_ANIMATION_LENGTH = 1790;
+    static final private int KNOCK_SCREEN_ANIMATION_LENGTH = 1680;
 
     private int screen_width, screen_height;
 
@@ -76,7 +78,7 @@ public class LizunView extends SurfaceView {
         linearInterpolator = new LinearInterpolator();
         accelerateInterpolator = new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION);
 
-        setLayoutParams(new FrameLayout.LayoutParams(WIDTH,HEIGHT));
+        setLayoutParams(new FrameLayout.LayoutParams(WIDTH, HEIGHT));
         setAlpha(SLIMER_ALPHA);
         setZOrderOnTop(true);
 
@@ -115,6 +117,7 @@ public class LizunView extends SurfaceView {
         if ( state == DISCONNECTED ) {
             is_charger_found = false;
             alreadyTurn = false;
+            future_state = 0;
         }
         else if ( state == CONNECTED ) {
             if ( is_charger_found ) return;
@@ -155,7 +158,14 @@ public class LizunView extends SurfaceView {
                 else current_state = THINKING_STATE;
             }
             else if (chance < 0.65) current_state = CHARGE_UP_STATE;
-            else if (chance < 0.8) current_state = HIT_SCREEN_ANIMATION;
+            else if (chance < 0.75) {
+                if ( current_state == HIT_SCREEN_ANIMATION) current_state = SEARCH_STATE;
+                else current_state = HIT_SCREEN_ANIMATION;
+            }
+            else if ( chance < 0.95 ) {
+                if ( current_state == KNOCK_SCREEN_ANIMATION) current_state = SEARCH_STATE;
+                else current_state = KNOCK_SCREEN_ANIMATION;
+            }
             else current_state = SEARCH_STATE;
         }
     }
@@ -192,6 +202,11 @@ public class LizunView extends SurfaceView {
                 LizunAudio.playSound(LizunAudio.HIT_SCREEN_SOUND);
                 playAnimation(R.anim.hit_screen);
                 waitAnimationToEnd(HIT_SCREEN_ANUMATION_LENGTH);
+                break;
+            case KNOCK_SCREEN_ANIMATION:
+                LizunAudio.playSound(LizunAudio.SCREEN_KNOCK_SOUND);
+                playAnimation(R.anim.knocking_on_screens_door);
+                waitAnimationToEnd(KNOCK_SCREEN_ANIMATION_LENGTH);
                 break;
             case FOUND_TURN_ANIMATION:
                 playAnimation(R.anim.turn_animation);
