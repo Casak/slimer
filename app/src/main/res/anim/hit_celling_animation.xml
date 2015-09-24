@@ -94,5 +94,5 @@
 	android:duration="40"/>
 	<item
 		android:drawable="@drawable/slimer_def"
-		android:duration="3000"/>
+		android:duration="4000"/>
 </animation-list>
