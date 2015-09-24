@@ -8,32 +8,19 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <application
         android:allowBackup="true"
-        android:name=".AppContext"
+        android:label="Лизун"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:hardwareAccelerated="true"
         android:theme="@style/AppTheme" >
-        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-        <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-        <uses-feature android:name="android.hardware.screen.landscape" />
         <activity
             android:name=".StartActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-            <receiver android:name=".BootReceiver">
-                <intent-filter >
-                    <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                </intent-filter>
-            </receiver>
         </activity>
-
     </application>
-
 </manifest>
