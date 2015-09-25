@@ -40,6 +40,8 @@ public class LizunView extends SurfaceView {
     static final private int HIT_SCREEN_ANIMATION = 14;
     static final private int KNOCK_SCREEN_ANIMATION = 15;
 
+    static final private int TIME_TO_CROSS_SCREEN = 1500;
+
     final private float SLIMER_ALPHA = 0.8f;
     final private int SLIMER_CHARGE_ACCELERATION = 2;
     final private int SLIMER_FLIGHT_DURATION = 300;
@@ -52,14 +54,14 @@ public class LizunView extends SurfaceView {
     static final private int SHOW_ANIMATION_LENGTH = 1790;
     static final private int KNOCK_SCREEN_ANIMATION_LENGTH = 1680;
 
-    private int screen_width, screen_height;
+    private int screenWidth, screenHeight;
 
-    private boolean is_first_time = true;
+    private boolean isFirstTime = true;
 
     private float x = -100, y;
-    private int current_state = BEGIN_STATE;
-    private int future_state = -1;
-    private boolean is_charger_found = false;
+    private int currentState = BEGIN_STATE;
+    private int futureState = -1;
+    private boolean isChargerFound = false;
     private boolean alreadyTurn = false;
     private AnimationDrawable animationDrawable;
     private ViewPropertyAnimator propertyAnimator;
@@ -71,9 +73,9 @@ public class LizunView extends SurfaceView {
 
         Point size = new Point();
         window_manager.getDefaultDisplay().getSize(size);
-        screen_width = size.x;
-        screen_height = size.y;
-        y = screen_height / 2;
+        screenWidth = size.x;
+        screenHeight = size.y;
+        y = screenHeight / 2;
 
         linearInterpolator = new LinearInterpolator();
         accelerateInterpolator = new AccelerateInterpolator(SLIMER_CHARGE_ACCELERATION);
@@ -90,9 +92,9 @@ public class LizunView extends SurfaceView {
         playAnimation(R.anim.search);
 
         x = -100;
-        y = screen_height / 2 - HEIGHT / 2;
+        y = screenHeight / 2 - HEIGHT / 2;
 
-        moveTo(screen_width / 2, screen_height / 2);
+        moveTo(screenWidth / 2, screenHeight / 2);
     }
 
     public void pause() {
@@ -102,9 +104,9 @@ public class LizunView extends SurfaceView {
     }
 
     public void resume() {
-        if ( is_first_time ) {
+        if (isFirstTime) {
             start();
-            is_first_time = false;
+            isFirstTime = false;
         }
         else {
             animationDrawable = (AnimationDrawable) getBackground();
@@ -115,21 +117,21 @@ public class LizunView extends SurfaceView {
 
     public void playState(int state) {
         if ( state == DISCONNECTED ) {
-            is_charger_found = false;
+            isChargerFound = false;
             alreadyTurn = false;
-            future_state = 0;
+            futureState = 0;
         }
         else if ( state == CONNECTED ) {
-            if ( is_charger_found ) return;
+            if (isChargerFound) return;
 
-            is_charger_found = true;
-            switch ( current_state ) {
+            isChargerFound = true;
+            switch (currentState) {
                 case FOUND_STATE:
                 case FOUND_SHOW_ANIMATION:
                 case FOUND_TURN_ANIMATION:
                     return;
                 default:
-                    future_state = FOUND_STATE;
+                    futureState = FOUND_STATE;
             }
         }
     }
@@ -140,49 +142,53 @@ public class LizunView extends SurfaceView {
     }
 
     private void desideWhatToDo() {
-        if (current_state == FOUND_STATE) return;
+        if (currentState == FOUND_STATE
+                || futureState == FOUND_STATE ) return;
 
         double chance = Math.random();
-        if (is_charger_found) {
-            if (!alreadyTurn) {
-                alreadyTurn = true;
-                LizunAudio.playSound(LizunAudio.CONNECT_SOUND);
-                current_state = FOUND_TURN_ANIMATION;
-            }
-            else current_state = FOUND_SHOW_ANIMATION;
+
+        if (isChargerFound) {
+            futureState = FOUND_SHOW_ANIMATION;
         }
         else {
-            if (chance < 0.3) current_state = CHARGE_SIDE_WALL;
-            else if ( chance < 0.45) {
-                if (current_state == THINKING_STATE) current_state = SEARCH_STATE;
-                else current_state = THINKING_STATE;
-            }
-            else if (chance < 0.65) current_state = CHARGE_UP_STATE;
-            else if (chance < 0.75) {
-                if ( current_state == HIT_SCREEN_ANIMATION) current_state = SEARCH_STATE;
-                else current_state = HIT_SCREEN_ANIMATION;
-            }
-            else if ( chance < 0.95 ) {
-                if ( current_state == KNOCK_SCREEN_ANIMATION) current_state = SEARCH_STATE;
-                else current_state = KNOCK_SCREEN_ANIMATION;
-            }
-            else current_state = SEARCH_STATE;
+            if (chance < 0.25) futureState = CHARGE_SIDE_WALL;
+            else if ( chance < 0.35) futureState = THINKING_STATE;
+            else if (chance < 0.55) futureState = CHARGE_UP_STATE;
+            else if (chance < 0.65) futureState = HIT_SCREEN_ANIMATION;
+            else if ( chance < 0.85 ) futureState = KNOCK_SCREEN_ANIMATION;
+            else futureState = SEARCH_STATE;
+
+            if ( (currentState == futureState && futureState != CHARGE_SIDE_WALL)
+                    || (currentState == HIT_UP_ANIMATION && futureState == CHARGE_UP_STATE) )
+                desideWhatToDo();
         }
     }
 
     private void updateAnimation() {
-        switch (current_state) {
+        currentState = futureState;
+        futureState = 0;
+
+        switch (currentState) {
             case SEARCH_STATE:
                 playAnimation(R.anim.search);
-                moveRandom();
+                propertyAnimator = moveRandom();
+                if ( propertyAnimator.getDuration() > 500 ) {
+                    LizunAudio.playSound(LizunAudio.OINK_SOUND);
+                }
                 break;
             case FOUND_STATE:
-                moveTo(screen_width / 2, screen_height / 2);
+                LizunAudio.playSound(LizunAudio.CONNECT_SOUND);
+
+                turn();
+                currentState = FOUND_TURN_ANIMATION;
+                playAnimation(R.anim.turn_animation);
+                propertyAnimator = moveTo(screenWidth / 2, screenHeight / 2);
+                propertyAnimator.setDuration(TURN_ANIMATION_LENGTH);
                 break;
             case CHARGE_SIDE_WALL:
                 playAnimation(R.anim.wall_hit_animation);
                 playAnimation(R.anim.wall_hit_charge);
-                float next_x = getScaleX() > 0 ? screen_width - WIDTH / 2 : WIDTH / 2;
+                float next_x = getScaleX() > 0 ? screenWidth - WIDTH / 2 : WIDTH / 2;
                 propertyAnimator = moveTo (next_x, getY() + HEIGHT / 2);
                 propertyAnimator.setInterpolator(accelerateInterpolator);
                 propertyAnimator.setDuration(SLIMER_FLIGHT_DURATION);
@@ -232,23 +238,22 @@ public class LizunView extends SurfaceView {
         double dr = Math.sqrt(dx * dx + dy * dy);
 
 
-        propertyAnimator = animate().x(x).y(y).setDuration(Math.round(1500 / screen_width * dr))
+        propertyAnimator = animate().x(x).y(y).setDuration(Math.round(TIME_TO_CROSS_SCREEN / screenWidth * dr))
                 .setListener(new AnimationEndListener());
         return propertyAnimator;
     }
 
-    private void moveRandom() {
-        double  end_x=0, 
+    private ViewPropertyAnimator moveRandom() {
+        double  end_x=0,
                 end_y=0;
-        LizunAudio.playSound(LizunAudio.OINK_SOUND);
-        end_x = ( screen_width - WIDTH ) * Math.random() + WIDTH / 2;
-        end_y = ( screen_height - HEIGHT ) * Math.random() + HEIGHT / 2;
+        end_x = ( screenWidth - WIDTH ) * Math.random() + WIDTH / 2;
+        end_y = ( screenHeight - HEIGHT ) * Math.random() + HEIGHT / 2;
 
         if ( (getScaleX() > 0 && end_x < x + WIDTH / 2 ) || ( getScaleX() < 0 && end_x > x + WIDTH / 2 ) ) {
             turn();
         }
 
-        moveTo((float) end_x, (float) end_y);
+        return moveTo((float) end_x, (float) end_y);
     }
 
     private void playAnimation(int anim_id) {
@@ -269,16 +274,16 @@ public class LizunView extends SurfaceView {
     }
 
     private void animationEndCallback() {
-        switch ( current_state ) {
+        switch (currentState) {
             case CHARGE_SIDE_WALL:
                 LizunAudio.playSound(LizunAudio.HIT_WALL_SOUND);
-                current_state = HIT_SIDE_ANIMATION;
+                currentState = HIT_SIDE_ANIMATION;
                 playAnimation(R.anim.wall_hit_animation);
                 waitAnimationToEnd(HIT_SIDE_ANIMATION_LENGTH);
                 return;
             case CHARGE_UP_STATE:
                 LizunAudio.playSound(LizunAudio.HIT_TOP_SOUND);
-                current_state = HIT_UP_ANIMATION;
+                currentState = HIT_UP_ANIMATION;
                 playAnimation(R.anim.hit_celling_animation);
                 waitAnimationToEnd(HIT_UP_ANIMATION_LENGTH);
                 return;
@@ -287,16 +292,14 @@ public class LizunView extends SurfaceView {
                 break;
             case FOUND_STATE:
                 setScaleX(-1);
-                current_state = FOUND_TURN_ANIMATION;
+                currentState = FOUND_TURN_ANIMATION;
                 playAnimation(R.anim.turn_animation);
                 waitAnimationToEnd(TURN_ANIMATION_LENGTH);
                 return;
+            case FOUND_TURN_ANIMATION:
+                setScaleX(-1);
+                break;
 
-        }
-
-        if ( future_state != -1 ) {
-            current_state = future_state;
-            future_state = -1;
         }
 
         update();

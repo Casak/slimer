@@ -90,10 +90,8 @@ public class StartActivity extends Activity {
 
     public static void changeSlimer(int STATE){
         if(slimer != null && state != STATE){
-            state = STATE;
-            slimer.pause();
-            slimer.playState(STATE);
-            slimer.resume();
+                state = STATE;
+                slimer.playState(STATE);
         }
     }
 }
