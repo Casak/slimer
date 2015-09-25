@@ -1,109 +1,97 @@
 package casak.ru.slimer;
 
 import android.app.Activity;
-import android.hardware.Camera;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.Toast;
+import com.remfils.lizuntest2.LizunView;
 
-
-    // TODO Recieve a charge signal
 
 public class StartActivity extends Activity {
+    private static final String TAG = "START_ACTIVITY";
 
-    private Camera mCamera;
-    private CameraPreview mPreview;
-    private final String TAG = "START_ACTIVITY";
+    private static LizunView slimer;
+    private static int state = LizunView.DISCONNECTED;
+    private PowerConnectionReceiver powerReceiver;
+    private IntentFilter mFilter;
+    private CameraView cameraView;
+    private FrameLayout preview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        powerReceiver = new PowerConnectionReceiver();
+        mFilter = new IntentFilter();
+        mFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        mFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        mFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        registerReceiver(powerReceiver, mFilter);
+
+        LizunAudio.init(this);
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         setContentView(R.layout.activity_fullscreen);
-        mCamera = getCameraInstance();
-        mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(mPreview);
+
+        cameraView = new CameraView(this);
+        slimer = new LizunView(this, getWindowManager());
+
+        preview = (FrameLayout) findViewById(R.id.camera);
+        preview.addView(cameraView);
+        preview.addView(slimer);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(mCamera == null){
-            mCamera = getCameraInstance();
-            mPreview = new CameraPreview(this, mCamera);
-            FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-            preview.addView(mPreview);
-        }
+        slimer.resume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (mCamera != null) {
-            mCamera.setPreviewCallback(null);
-            mPreview.getHolder().removeCallback(mPreview);
-            mCamera.release();
-            mCamera = null;
-        }
+        System.exit(1);
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
             try {
-                String command;
-                command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
-                Process proc = Runtime.getRuntime().exec(new String[]{"su", "-c", command}, null);
-                proc.waitFor();
-                Log.i(TAG, "UI Disabled");
-            }
-            catch (Exception e){
-                // TODO Write an exception handler
-            }
-            return true;
-        }
-        else if(event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN){
-            try{
                 String command;
                 command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
                 Process proc = Runtime.getRuntime().exec(new String[] { "su", "-c", command }, null);
                 proc.waitFor();
-                Log.i(TAG, "UI Enabled");
+                Toast.makeText(getApplicationContext(), "UI Enabled", Toast.LENGTH_LONG).show();
             }
             catch (Exception e){
-                // TODO Write an exception handler
+                return super.dispatchKeyEvent(event);
             }
             return true;
         }
-        else {
-            return super.dispatchKeyEvent(event);
+        else if(event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN && event.getAction() == KeyEvent.ACTION_DOWN){
+            try{
+                String command;
+                command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
+                Process proc = Runtime.getRuntime().exec(new String[]{"su", "-c", command}, null);
+                proc.waitFor();
+                Toast.makeText(getApplicationContext(), "UI Disabled", Toast.LENGTH_LONG).show();
+            }
+            catch (Exception e){
+                return super.dispatchKeyEvent(event);
+            }
+            return true;
         }
+        else return super.dispatchKeyEvent(event);
     }
 
-
-    public static Camera getCameraInstance(){
-        Camera c = null;
-        try {
-            c = Camera.open(1);
+    public static void changeSlimer(int STATE){
+        if(slimer != null && state != STATE){
+                state = STATE;
+                slimer.playState(STATE);
         }
-        catch (Exception e){
-            //TODO Write an exception handler
-        }
-        return c;
     }
-
-
-
-
-/*
-    public static boolean isConnected(Context context) {
-        Intent intent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-        return plugged == BatteryManager.BATTERY_STATUS_CHARGING || plugged == BatteryManager.BATTERY_PLUGGED_USB;
-    }
-    */
 }
